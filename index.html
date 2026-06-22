@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Arqueo Diario - La Esperanza</title>
+<link rel="icon" href="1.jpeg">
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#dfe6e9;
+margin:0;
+}
+
+/* LOGIN */
+#login{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#2d3436;
+display:flex;
+justify-content:center;
+align-items:center;
+z-index:10;
+}
+
+.loginBox{
+background:white;
+padding:25px;
+border-radius:10px;
+width:300px;
+text-align:center;
+box-shadow:0 5px 15px rgba(0,0,0,.3);
+}
+
+.loginBox input{
+width:90%;
+padding:8px;
+margin:5px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+/* SISTEMA */
+.container{
+width:1100px;
+margin:20px auto;
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+display:none;
+}
+
+h2{
+text-align:center;
+background:#f4b183;
+padding:12px;
+border-radius:8px;
+}
+
+h3{margin-top:25px;}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-bottom:10px;
+}
+
+td,th{
+border:1px solid #ccc;
+padding:8px;
+text-align:center;
+}
+
+input{
+width:90%;
+padding:5px;
+text-align:center;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+button{
+padding:8px 12px;
+margin:5px;
+cursor:pointer;
+border:none;
+border-radius:6px;
+background:#0984e3;
+color:white;
+}
+#sistema{
+    background:#fff;
+}
+
+@media print{
+    button{
+        display:none;
+    }
+}
+button:hover{opacity:.8;}
+
+.deleteBtn{background:#d63031;}
+.clearBtn{background:#2d3436;}
+.logout{background:#636e72;}
+
+.green{background:#c6e0b4;}
+.yellow{background:#ffeaa7;}
+.orange{background:#fab1a0;}
+.blue{background:#74b9ff;}
+
+.totalBox{
+font-size:22px;
+text-align:center;
+margin-top:10px;
+padding:10px;
+background:#00b894;
+color:white;
+border-radius:8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+<div class="loginBox">
+<h3>INICIAR SESIÓN</h3>
+<input id="user" placeholder="Usuario">
+<input id="pass" type="password" placeholder="Contraseña">
+<button onclick="login()">ENTRAR</button>
+<p id="msg"></p>
+</div>
+</div>
+<div id="reporte" style="display:none">
+   <!-- formato igual al Excel -->
+</div>
+<!-- SISTEMA -->
+<div class="container" id="sistema">
+
+<h2>ARQUEO DIARIO - TALLER LA ESPERANZA Esteli</h2>
+
+<button class="logout" onclick="logout()">Cerrar sesión</button>
+
+<h3>
+Fecha:
+<input type="date" id="fecha">
+⏰ <span id="hora"></span>
+</h3>
+
+<!-- VENTAS -->
+<table>
+<tr class="green">
+<th>TIPO</th><th>CANTIDAD</th><th>PRECIO</th><th>TOTAL</th>
+</tr>
+
+<tr><td class="orange">LIVIANOS</td><td><input id="l"></td><td>400</td><td id="tl">0</td></tr>
+<tr><td class="yellow">PESADOS</td><td><input id="p"></td><td>700</td><td id="tp">0</td></tr>
+<tr><td class="blue">EMISIONES</td><td><input id="e"></td><td>550</td><td id="te">0</td></tr>
+<tr><td>EMPLASTICADOS</td><td><input id="em"></td><td>50</td><td id="tem">0</td></tr>
+
+<tr>
+<td colspan="3"><b>TOTAL INGRESOS</b></td>
+<td id="total">0</td>
+</tr>
+</table>
+
+<!-- PAGOS -->
+<h3>PAGOS</h3>
+<table id="pagos"></table>
+<button onclick="addPago()">+ Agregar Pago</button>
+
+<!-- GASTOS -->
+<h3>GASTOS</h3>
+<table id="gastos"></table>
+<button onclick="addGasto()">+ Agregar Gasto</button>
+
+<!-- PAPELERIA -->
+<h3>PAPELERIA</h3>
+<table>
+
+<tr class="yellow">
+<th>TIPO</th><th>INICIAL</th><th>FINAL</th><th>QUEDAN</th>
+</tr>
+
+<tr><td>Livianos</td><td><input id="pl1"></td><td><input id="pl2"></td><td id="ql">0</td></tr>
+<tr><td>Pesados</td><td><input id="pp1"></td><td><input id="pp2"></td><td id="qp">0</td></tr>
+<tr><td>Emisiones</td><td><input id="pe1"></td><td><input id="pe2"></td><td id="qe">0</td></tr>
+<tr><td>Plásticos</td><td><input id="px1"></td><td><input id="px2"></td><td id="qx">0</td></tr>
+<tr><td>Hoja Seguridad</td><td><input id="ph1"></td><td><input id="ph2"></td><td id="qh">0</td></tr>
+
+</table>
+
+<div class="totalBox">
+TOTAL A RECIBIR: C$ <span id="final">0</span>
+</div>
+
+<button onclick="guardar()">💾 Guardar</button>
+<button onclick="descargar()">📸 Imagen</button>
+<button onclick="clearHistory()">🗑 Borrar historial</button>
+
+<h3>FILTRO HISTORIAL</h3>
+<input type="date" id="filtro">
+<button onclick="filtrar()">🔎 Buscar</button>
+<button onclick="cargarHistorial()">📋 Todo</button>
+
+<h3>HISTORIAL</h3>
+<table id="historial"></table>
+
+</div>
+<script>/* ================= ALERTAS BONITAS (PRO) ================= */
+
+const toastZone=document.createElement("div");
+
+toastZone.style.position="fixed";
+toastZone.style.top="20px";
+toastZone.style.right="20px";
+toastZone.style.display="flex";
+toastZone.style.flexDirection="column";
+toastZone.style.gap="10px";
+toastZone.style.zIndex="999999";
+
+document.body.appendChild(toastZone);
+
+function alerta(msg, tipo="info"){
+
+const types={
+ok:{color:"#16a34a",icon:"✔",title:"Éxito"},
+error:{color:"#dc2626",icon:"✖",title:"Error"},
+info:{color:"#2563eb",icon:"ℹ",title:"Info"}
+};
+
+let t=types[tipo]||types.info;
+
+let box=document.createElement("div");
+
+box.style.width="300px";
+box.style.padding="12px 14px";
+box.style.borderRadius="12px";
+box.style.color="white";
+box.style.fontFamily="Segoe UI, Arial";
+box.style.boxShadow="0 10px 25px rgba(0,0,0,0.25)";
+box.style.background=t.color;
+box.style.position="relative";
+box.style.overflow="hidden";
+box.style.opacity="0";
+box.style.transform="translateX(40px)";
+box.style.transition="0.25s ease";
+
+box.innerHTML=`
+<div style="display:flex;align-items:center;gap:10px;">
+<div style="font-size:18px;">${t.icon}</div>
+<div>
+<div style="font-size:13px;font-weight:600;">${t.title}</div>
+<div style="font-size:12px;opacity:0.9;margin-top:2px;">${msg}</div>
+</div>
+</div>
+`;
+
+/* barra progreso */
+let bar=document.createElement("div");
+bar.style.position="absolute";
+bar.style.bottom="0";
+bar.style.left="0";
+bar.style.height="3px";
+bar.style.width="100%";
+bar.style.background="rgba(255,255,255,0.35)";
+bar.style.transformOrigin="left";
+bar.style.animation="toastProgress 3s linear forwards";
+
+box.appendChild(bar);
+
+toastZone.appendChild(box);
+
+setTimeout(()=>{
+box.style.opacity="1";
+box.style.transform="translateX(0)";
+},30);
+
+setTimeout(()=>{
+box.style.opacity="0";
+box.style.transform="translateX(40px)";
+setTimeout(()=>box.remove(),300);
+},3000);
+
+/* CSS UNA SOLA VEZ */
+if(!document.getElementById("toastStyle")){
+let style=document.createElement("style");
+style.id="toastStyle";
+style.innerHTML=`
+@keyframes toastProgress{
+from{transform:scaleX(1);}
+to{transform:scaleX(0);}
+}`;
+document.head.appendChild(style);
+}
+
+}
+
+
+/* ================= LOGIN ================= */
+function login(){
+let u=document.getElementById("user").value.toLowerCase();
+let p=document.getElementById("pass").value.toLowerCase();
+
+if(u==="la esperanza" && p==="laesperanza2026"){
+localStorage.setItem("sesion","ok");
+alerta("Acceso autorizado al sistema", "ok");
+mostrar();
+}else{
+alerta("Credenciales incorrectas", "error");
+document.getElementById("msg").innerText="Error de acceso";
+}
+}
+
+function logout(){
+localStorage.removeItem("sesion");
+alerta("Sesión cerrada", "info");
+setTimeout(()=>location.reload(),800);
+}
+
+function mostrar(){
+document.getElementById("login").style.display="none";
+document.getElementById("sistema").style.display="block";
+inicio();
+}
+
+window.onload=()=>{
+if(localStorage.getItem("sesion")==="ok") mostrar();
+};
+
+
+/* ================= INICIO ================= */
+let listenerAdded=false;
+
+function inicio(){
+
+document.getElementById("fecha").valueAsDate=new Date();
+
+setInterval(()=>{
+document.getElementById("hora").innerText=
+new Date().toLocaleTimeString();
+},1000);
+
+cargarHistorial();
+calcular();
+
+if(!listenerAdded){
+document.addEventListener("input",calcular);
+listenerAdded=true;
+}
+
+}
+
+
+/* ================= UTIL ================= */
+function v(id){
+return Number(document.getElementById(id)?.value || 0);
+}
+
+function s(id,val){
+document.getElementById(id).innerText=val;
+}
+
+
+/* ================= GASTOS ================= */
+function totalGastos(){
+let inputs=document.querySelectorAll("#gastos input[type='number']");
+let suma=0;
+
+inputs.forEach(i=>{
+suma+=Number(i.value||0);
+});
+
+return suma;
+}
+
+
+/* ================= CALCULO ================= */
+function calcular(){
+
+const l=v("l");
+const p=v("p");
+const e=v("e");
+const em=v("em");
+
+let tl=l*400;
+let tp=p*700;
+let te=e*550;
+let tem=em*50;
+
+s("tl",tl);
+s("tp",tp);
+s("te",te);
+s("tem",tem);
+
+let total=tl+tp+te+tem;
+let gastos=totalGastos();
+let final=total-gastos;
+
+s("total",total);
+s("final",final);
+
+
+/* PAPELERIA */
+
+const livIni=3104250;
+const livUsados=3104234+l;
+const livQuedan=livIni-livUsados;
+
+document.getElementById("pl1").value=livIni;
+document.getElementById("pl2").value=livUsados;
+s("ql",livQuedan);
+
+const pesIni=823250;
+const pesUsados=823210+p;
+const pesQuedan=pesIni-pesUsados;
+
+document.getElementById("pp1").value=pesIni;
+document.getElementById("pp2").value=pesUsados;
+s("qp",pesQuedan);
+
+const emiIni=123952;
+const emiUsados=123926+e;
+const emiQuedan=emiIni-emiUsados;
+
+document.getElementById("pe1").value=String(emiIni).padStart(7,"0");
+document.getElementById("pe2").value=String(emiUsados).padStart(7,"0");
+s("qe",emiQuedan);
+
+const empIni=39;
+const empUsados=em;
+const empQuedan=empIni-empUsados;
+
+document.getElementById("px1").value=empIni;
+document.getElementById("px2").value=empUsados;
+s("qx",empQuedan);
+
+}
+
+
+/* ================= PAGOS ================= */
+function addPago(){
+document.getElementById("pagos").innerHTML+=`
+<tr>
+<td><input></td>
+<td><input type="number" oninput="calcular()"></td>
+<td><button onclick="this.parentElement.parentElement.remove();calcular()">X</button></td>
+</tr>`;
+}
+
+
+/* ================= GASTOS ================= */
+function addGasto(){
+document.getElementById("gastos").innerHTML+=`
+<tr>
+<td><input></td>
+<td><input type="number" oninput="calcular()"></td>
+<td><button onclick="this.parentElement.parentElement.remove();calcular()">X</button></td>
+</tr>`;
+}
+
+
+/* ================= GUARDAR ================= */
+function guardar(){
+
+let h=JSON.parse(localStorage.getItem("historial")||"[]");
+
+let ingresos=(v("l")*400)+(v("p")*700)+(v("e")*550)+(v("em")*50);
+
+h.push({
+fecha:document.getElementById("fecha").value,
+hora:new Date().toLocaleTimeString(),
+l:v("l"),
+p:v("p"),
+e:v("e"),
+em:v("em"),
+total:ingresos,
+gastos:totalGastos(),
+final:ingresos-totalGastos()
+});
+
+localStorage.setItem("historial",JSON.stringify(h));
+cargarHistorial();
+
+alerta("Registro guardado en el sistema", "ok");
+}
+
+
+/* ================= HISTORIAL ================= */
+function cargarHistorial(){
+render(JSON.parse(localStorage.getItem("historial")||"[]"));
+}
+
+function filtrar(){
+let f=document.getElementById("filtro").value;
+let h=JSON.parse(localStorage.getItem("historial")||"[]");
+render(h.filter(x=>x.fecha===f));
+}
+
+function render(data){
+
+let t=document.getElementById("historial");
+
+t.innerHTML=`
+<tr>
+<th>FECHA</th>
+<th>HORA</th>
+<th>LIV</th>
+<th>PES</th>
+<th>EMI</th>
+<th>EMPL</th>
+<th>TOTAL</th>
+</tr>`;
+
+data.forEach(x=>{
+t.innerHTML+=`
+<tr>
+<td>${x.fecha}</td>
+<td>${x.hora}</td>
+<td>${x.l}</td>
+<td>${x.p}</td>
+<td>${x.e}</td>
+<td>${x.em}</td>
+<td>${x.final ?? x.total}</td>
+</tr>`;
+});
+}
+
+
+/* ================= BORRAR ================= */
+function clearHistory(){
+localStorage.removeItem("historial");
+cargarHistorial();
+alerta("Historial eliminado del sistema", "error");
+}
+
+
+/* ================= DESCARGAR ================= */
+function descargar(){
+
+alerta("Generando reporte visual...", "info");
+
+const botones=document.querySelectorAll("button");
+
+botones.forEach(b=>b.style.display="none");
+
+html2canvas(document.getElementById("sistema"),{
+scale:3,
+useCORS:true,
+backgroundColor:"#ffffff"
+}).then(canvas=>{
+
+botones.forEach(b=>b.style.display="");
+
+const a=document.createElement("a");
+
+a.download=`REPORTE_${document.getElementById("fecha").value}.png`;
+a.href=canvas.toDataURL("image/png",1.0);
+a.click();
+
+alerta("Reporte generado correctamente", "ok");
+
+});
+
+}
+</script>
+</body>
+</html>
