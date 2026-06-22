@@ -6,6 +6,7 @@
 <link rel="icon" href="1.jpeg">
 
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs/dist/exceljs.min.js"></script>
 
 <style>
 
@@ -205,6 +206,7 @@ TOTAL A RECIBIR: C$ <span id="final">0</span>
 
 <button onclick="guardar()">💾 Guardar</button>
 <button onclick="descargar()">📸 Imagen</button>
+<button onclick="exportarExcel()">📊 Excel</button>
 <button onclick="clearHistory()">🗑 Borrar historial</button>
 
 <h3>FILTRO HISTORIAL</h3>
@@ -571,6 +573,146 @@ alerta("Reporte generado correctamente", "ok");
 
 });
 
+}
+
+
+async function exportarExcel(){
+
+alerta("Generando Excel profesional estilo empresa...", "info");
+
+const wb = new ExcelJS.Workbook();
+const ws = wb.addWorksheet("REPORTE CONTABLE");
+
+/* ================= ANCHO COLUMNAS ================= */
+ws.columns = [
+{ width: 14 },
+{ width: 14 },
+{ width: 8 },
+{ width: 8 },
+{ width: 8 },
+{ width: 10 },
+{ width: 14 },
+{ width: 14 },
+{ width: 14 }
+];
+
+/* ================= ENCABEZADO ================= */
+ws.mergeCells("A1:I1");
+ws.getCell("A1").value = "TALLER LA ESPERANZA - ESTELÍ";
+ws.getCell("A1").alignment = { horizontal: "center" };
+ws.getCell("A1").font = { bold: true, size: 16, color: { argb: "FFFFFF" } };
+ws.getCell("A1").fill = {
+type: "pattern",
+pattern: "solid",
+fgColor: { argb: "1F4E79" }
+};
+
+ws.mergeCells("A2:I2");
+ws.getCell("A2").value = "REPORTE CONTABLE DIARIO";
+ws.getCell("A2").alignment = { horizontal: "center" };
+ws.getCell("A2").font = { bold: true, size: 14, color: { argb: "FFFFFF" } };
+ws.getCell("A2").fill = {
+type: "pattern",
+pattern: "solid",
+fgColor: { argb: "2E86C1" }
+};
+
+/* FECHA */
+ws.mergeCells("A3:I3");
+ws.getCell("A3").value = "Fecha: " + fecha.value;
+ws.getCell("A3").alignment = { horizontal: "center" };
+
+/* ================= TABLA VENTAS ================= */
+ws.addRow([]);
+ws.addRow(["VENTAS DEL DÍA"]);
+
+let header = ws.addRow([
+"FECHA","HORA","LIV","PES","EMI","EMPL","INGRESOS","GASTOS","NETO"
+]);
+
+header.eachCell(cell=>{
+cell.font = { bold: true, color: { argb: "FFFFFF" } };
+cell.fill = { type:"pattern", pattern:"solid", fgColor:{ argb:"4472C4" } };
+cell.alignment = { horizontal:"center" };
+cell.border = {
+top:{style:"thin"}, left:{style:"thin"},
+bottom:{style:"thin"}, right:{style:"thin"}
+};
+});
+
+JSON.parse(localStorage.getItem("historial")||"[]").forEach(x=>{
+ws.addRow([
+x.fecha,
+x.hora,
+x.l,
+x.p,
+x.e,
+x.em,
+x.total,
+x.gastos||0,
+x.final
+]);
+});
+
+/* ================= RESUMEN ================= */
+ws.addRow([]);
+ws.addRow(["RESUMEN FINANCIERO"]);
+
+let totalIng = JSON.parse(localStorage.getItem("historial")||"[]")
+.reduce((a,b)=>a+(b.total||0),0);
+
+let totalGas = JSON.parse(localStorage.getItem("historial")||"[]")
+.reduce((a,b)=>a+(b.gastos||0),0);
+
+ws.addRow(["TOTAL INGRESOS","","","","","","","",totalIng]);
+ws.addRow(["TOTAL GASTOS","","","","","","","",totalGas]);
+ws.addRow(["UTILIDAD FINAL","","","","","","","",totalIng-totalGas]);
+
+/* ================= PAPELERÍA ================= */
+ws.addRow([]);
+ws.addRow(["CONTROL DE PAPELERÍA"]);
+
+ws.addRow(["TIPO","INICIAL","USADOS","QUEDAN"]);
+
+ws.addRow([
+"LIVIANOS",pl1.value,pl2.value,ql.innerText
+]);
+ws.addRow([
+"PESADOS",pp1.value,pp2.value,qp.innerText
+]);
+ws.addRow([
+"EMISIONES",pe1.value,pe2.value,qe.innerText
+]);
+ws.addRow([
+"EMPLASTICADOS",px1.value,px2.value,qx.innerText
+]);
+
+/* ================= BORDES A TODO ================= */
+ws.eachRow(row=>{
+row.eachCell(cell=>{
+cell.border = {
+top:{style:"thin"},
+left:{style:"thin"},
+bottom:{style:"thin"},
+right:{style:"thin"}
+};
+cell.alignment = { horizontal:"center", vertical:"middle" };
+});
+});
+
+/* ================= DESCARGA ================= */
+const buffer = await wb.xlsx.writeBuffer();
+
+const blob = new Blob([buffer], {type:
+"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+});
+
+const a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = `REPORTE_CONTABLE_${fecha.value}.xlsx`;
+a.click();
+
+alerta("Excel profesional generado ✔", "ok");
 }
 </script>
 </body>
